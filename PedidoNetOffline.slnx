@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="PedidoNetMobile/PedidoNetMobile.csproj" Id="0e53bb4c-5b1a-41c2-af54-402e31b558f5">
+      <Deploy Solution="Debug|*" />
+    </Project>
+    <Project Path="PedidoNetUIShared/PedidoNetUIShared.csproj" />
+    <Project Path="PedidoNetWeb/PedidoNetWeb.csproj" />
+  </Folder>
+</Solution>

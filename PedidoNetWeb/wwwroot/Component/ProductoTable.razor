@@ -1,0 +1,47 @@
+﻿@using PedidoNetWeb.Models.Productos
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Código</th>
+                    <th>Producto</th>
+                    <th class="text-end">Precio</th>
+                    <th class="text-center">Existencias</th>
+                    <th class="text-center">IVA</th>
+                    <th class="text-center">ISC</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach(var producto in Productos)
+                {
+                    <tr>
+                        <td>@producto.Codigo</td>
+                        <td class="fw-semibold">@producto.Nombre</td>
+                        <td class="text-center">@producto.PrecioVenta</td>
+                        <td class="text-center">@producto.Existencias</td>
+                        <td class="text-center">@(producto.TieneIVA==true ? "Si" : "No")</td>
+                        <td class="text-center">@(producto.TieneISC==true ? "Si" : "No")</td>
+                        <td>
+                            <button type="button"
+                                class="btn btn-sm btn-outline-primary me-2">
+                                Editar
+                            </button>
+                        </td>
+                        <td class="text-start">
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-danger">
+                                Borrar
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div
+
+@code {
+    [Parameter]
+    public IReadOnlyList<ProductosDto> Productos { get; set; } = [];
+}
