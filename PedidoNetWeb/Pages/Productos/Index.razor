@@ -1,59 +1,127 @@
 ﻿@page "/productos"
-@using PedidoNetWeb.Models.Productos
-@using PedidoNetWeb.Services.Productos
-@using PedidoNetWeb.wwwroot.Component
+@using PedidoNet.Web.Models.Productos
+@using PedidoNet.Web.Services.Productos
 
 @inject IProductoService ProductoService
 @inject NavigationManager Navigation
-<PageTitle>Productos</PageTitle>
-<div class="contains-fluid py-4">
-    <PageHeader Title="Productos"
-    Descripcion="Consulta el catálogo de productos"/>
 
-    @if(isLoading)
+<PageTitle>Productos</PageTitle>
+
+<div class="container-fluid py-4">
+    <PageHeader Title="Productos"
+                Description="Consulta el catálogo de productos.">
+
+        <Actions>
+            <button type="button"
+                    class="btn btn-primary"
+                    @onclick="NuevoProducto">
+                Nuevo producto
+            </button>
+        </Actions>
+
+    </PageHeader>
+
+    @if (isLoading)
     {
         <LoadingIndicator Message="Cargando productos..." />
     }
     else if (errorMessage is not null)
     {
         <AlertMessage Message="@errorMessage"
-            Dismissible="false" />
-    
+                      Dismissible="false" />
     }
-    else if(productos.Count==0)
+    else if (productos.Count == 0)
     {
         <AlertMessage Variant="info"
-            Message="No hay productos registrados"
+                      Message="No hay productos registrados."
                       Dismissible="false" />
     }
     else
     {
-        <ProductoTable Productos="@productos" />   
+        <DataTable TItem="PedidoNet.Web.Models.Productos.ProductosDto"
+                   Items="@productos"
+                   ColumnCount="7"
+                   EmptyMessage="No hay productos registrados.">
+
+            <Header>
+                <th>Código</th>
+                <th>Producto</th>
+                <th>Precio</th>
+                <th>Existencias</th>
+                <th>IVA</th>
+                <th>ISC</th>
+                <th>Acciones</th>
+            </Header>
+
+            <RowTemplate Context="producto">
+
+                <td>@producto.Codigo</td>
+
+                <td class="fw-semibold">
+                    @producto.Nombre
+                </td>
+
+                <td class="text-end">
+                    @producto.PrecioVenta.ToString("N2")
+                </td>
+
+                <td class="text-center">
+                    @producto.Existencias
+                </td>
+
+                <td class="text-center">
+                    @(producto.TieneIVA == true ? "Sí" : "No")
+                </td>
+
+                <td class="text-center">
+                    @(producto.TieneISC == true ? "Sí" : "No")
+                </td>
+
+                <td class="text-end">
+                    <button type="button"
+                            class="btn btn-sm btn-outline-primary me-2"
+                            @onclick="@(() => OnEditar(producto))">
+                        Editar
+                    </button>
+
+                    <button type="button"
+                            class="btn btn-sm btn-outline-danger"
+                            @onclick="@(() => OnEliminar(producto))">
+                        Eliminar
+                    </button>
+                </td>
+
+            </RowTemplate>
+
+        </DataTable>
     }
 </div>
 
 @code {
     private List<ProductosDto> productos = [];
+
     private bool isLoading = true;
+
     private string? errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            productos = await ProductoService.GetAllAsync();
+            productos = await ProductoService.ObtenerTodosAsync();
         }
-        catch(UnauthorizedAccessException)
+        catch (UnauthorizedAccessException)
         {
             Navigation.NavigateTo("/login");
         }
-        catch(HttpRequestException ex)
+        catch (HttpRequestException ex)
         {
-            errorMessage = $"No fue posible consultar los productos. {ex.Message}";
+            errorMessage =
+                $"No fue posible consultar los productos. {ex.Message}";
         }
         catch(Exception ex)
         {
-            errorMessage = $"Error inesperado:{ex.Message}";
+            errorMessage = $"Error inesperado: {ex.Message}";
         }
         finally
         {
@@ -61,4 +129,38 @@
         }
     }
 
+    private void Editar(int id)
+    {
+        Navigation.NavigateTo($"/productos/editar/{id}");
+    }
+
+    private object Editar(object productoId)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void OnEditar(ProductosDto producto)
+    {
+        Navigation.NavigateTo(
+            $"/productos/editar/{producto.ProductoId}");
+    }
+
+    private async Task OnEliminar(ProductosDto producto)
+    {
+        await ProductoService.EliminarAsync(
+            producto.ProductoId);
+
+        await CargarProductosAsync();
+    }
+
+    private async Task CargarProductosAsync()
+    {
+        productos =
+            await ProductoService.ObtenerTodosAsync();
+    }
+
+    private void NuevoProducto()
+    {
+        Navigation.NavigateTo("/productos/crear");
+    }
 }
