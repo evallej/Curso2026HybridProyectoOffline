@@ -14,7 +14,7 @@ namespace PedidoNetWeb.Services.Api
 
         public async Task<ApiResponse<LoginResponse>?>LoginAsync(LoginRequest request)
         {
-            var httpResponse = await _httpClient.PostAsJsonAsync("api/Auth/login", request);
+            var httpResponse = await _httpClient.PostAsJsonAsync("api/v1/Auth/login", request);
             var response= await httpResponse.Content.ReadFromJsonAsync<ApiResponse<LoginResponse>>();
 
             return response;

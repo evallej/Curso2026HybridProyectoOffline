@@ -1,25 +1,47 @@
 ﻿@page "/productos"
-@using PedidoNet.Web.Models.Productos
-@using PedidoNet.Web.Services.Productos
+@implements IDisposable
+
+@using PedidoNetWeb.Models.Productos
+@using PedidoNetWeb.Services.Productos
+@using PedidoNetWeb.Services
+@using PedidoNetWeb.Services.Offline
 
 @inject IProductoService ProductoService
+@inject ConnectivityService Connectivity
 @inject NavigationManager Navigation
+@inject ProductoSyncService ProductoSync
 
 <PageTitle>Productos</PageTitle>
 
-<div class="container-fluid py-4">
-    <PageHeader Title="Productos"
-                Description="Consulta el catálogo de productos.">
+<div class="container-fluid px-3 px-md-4 py-4">
+    <PageHeader Title="Lista de Productos"
+                Descripcion="Administra el catálogo de productos">
 
         <Actions>
             <button type="button"
-                    class="btn btn-primary"
+                    class="btn btn-primary px-3"
                     @onclick="NuevoProducto">
                 Nuevo producto
             </button>
         </Actions>
 
     </PageHeader>
+
+    @if (!Connectivity.IsOnline)
+    {
+         <div class="offline-banner mb-4">
+             <div>
+                 <div class="fw-bold">
+                     Estás trabajando sin conexión.
+                 </div>
+
+                 <div class="small">
+                     Puedes continuar usando la aplicación, pero las operaciones requieren conexión con la API.
+                 </div>
+             </div>
+         </div>
+    }
+
 
     @if (isLoading)
     {
@@ -33,15 +55,15 @@
     else if (productos.Count == 0)
     {
         <AlertMessage Variant="info"
-                      Message="No hay productos registrados."
+                      Message="No hay productos registrados"
                       Dismissible="false" />
     }
     else
     {
-        <DataTable TItem="PedidoNet.Web.Models.Productos.ProductosDto"
+        <DataTable TItem="PedidoNetWeb.Models.Productos.ProductosDto"
                    Items="@productos"
                    ColumnCount="7"
-                   EmptyMessage="No hay productos registrados.">
+                   EmptyMessage="No hay productos registrados">
 
             <Header>
                 <th>Código</th>
@@ -86,7 +108,8 @@
 
                     <button type="button"
                             class="btn btn-sm btn-outline-danger"
-                            @onclick="@(() => OnEliminar(producto))">
+                            @onclick="@(() => OnEliminar(producto))"
+                            disabled="@(!Connectivity.IsOnline)">
                         Eliminar
                     </button>
                 </td>
@@ -106,22 +129,44 @@
 
     protected override async Task OnInitializedAsync()
     {
+        Connectivity.ConnectivityChanged += OnConnectivityChanged;
+        await CargarProductosAsync();
+    }
+
+       private void OnEditar(ProductosDto producto)
+    {
+        Navigation.NavigateTo(
+            $"/productos/editar/{producto.LocalId}");
+    }
+
+    private async Task OnEliminar(ProductosDto producto)
+    {
+        await ProductoService.EliminarAsync(
+            producto.LocalId);
+
+        await CargarProductosAsync();
+    }
+
+    private async Task CargarProductosAsync()
+    {
         try
         {
+            isLoading = true;
+            errorMessage = null;
+
             productos = await ProductoService.ObtenerTodosAsync();
         }
         catch (UnauthorizedAccessException)
         {
             Navigation.NavigateTo("/login");
         }
-        catch (HttpRequestException ex)
+        catch(HttpRequestException e)
         {
-            errorMessage =
-                $"No fue posible consultar los productos. {ex.Message}";
+            errorMessage = $"No fue posible consultar los productos ${e.Message}";
         }
-        catch(Exception ex)
+        catch(Exception e)
         {
-            errorMessage = $"Error inesperado: {ex.Message}";
+            errorMessage = $"Error inesperado: {e.Message}";
         }
         finally
         {
@@ -129,38 +174,36 @@
         }
     }
 
-    private void Editar(int id)
-    {
-        Navigation.NavigateTo($"/productos/editar/{id}");
-    }
-
-    private object Editar(object productoId)
-    {
-        throw new NotImplementedException();
-    }
-
-    private void OnEditar(ProductosDto producto)
-    {
-        Navigation.NavigateTo(
-            $"/productos/editar/{producto.ProductoId}");
-    }
-
-    private async Task OnEliminar(ProductosDto producto)
-    {
-        await ProductoService.EliminarAsync(
-            producto.ProductoId);
-
-        await CargarProductosAsync();
-    }
-
-    private async Task CargarProductosAsync()
-    {
-        productos =
-            await ProductoService.ObtenerTodosAsync();
-    }
-
     private void NuevoProducto()
     {
         Navigation.NavigateTo("/productos/crear");
     }
+
+    public void Dispose()
+    {
+        Connectivity.ConnectivityChanged -= OnConnectivityChanged;
+
+    }
+
+   private void OnConnectivityChanged()
+    {
+        _ = InvokeAsync(async () =>
+        {
+            if (Connectivity.IsOnline)
+            {
+                try
+                {
+                    await ProductoSync.SynchronizeAsync();
+                    productos = await ProductoService.ObtenerTodosAsync();
+                }
+                catch
+                {
+
+                }
+            }
+
+            StateHasChanged();
+        });
+    }
+
 }

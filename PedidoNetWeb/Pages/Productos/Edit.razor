@@ -1,7 +1,9 @@
-﻿@page "/productos/editar/{Id:int}"
+﻿@page "/productos/editar/{LocalId:guid}"
 
-@using PedidoNet.Web.Models.Productos
-@using PedidoNet.Web.Services.Productos
+@using PedidoNetWeb.Models.Productos
+@using PedidoNetWeb.Services.Productos
+@using PedidoNetUIShared.Models.Productos
+@using PedidoNetUIShared.Components.Productos
 
 @inject IProductoService ProductoService
 @inject NavigationManager Navigation
@@ -12,7 +14,7 @@
 
     <PageHeader
         Title="Editar producto"
-        Description="Actualiza la información del producto." />
+        Descripcion="Actualiza la información del producto" />
 
     @if (isLoading)
     {
@@ -23,7 +25,7 @@
     {
         <AlertMessage
             Variant="warning"
-            Message="El producto no existe."
+            Message="El producto no existe"
             Dismissible="false" />
     }
     else
@@ -35,13 +37,14 @@
         <div class="card border-0 shadow-sm">
             <div class="card-body p-4">
 
-                <ProductoForm
+                <PedidoNetWeb.Components.Productos.ProductoForm
                     Model="@model"
                     SubmitText="Guardar cambios"
                     IsSaving="@isSaving"
                     OnValidSubmit="GuardarAsync"
                     Cancel="Cancelar" />
 
+                <ProductoImageManager OnUpload="SubirImagenAsync" />
             </div>
         </div>
     }
@@ -51,7 +54,7 @@
 @code {
     [Parameter]
     public int Id { get; set; }
-
+ public Guid LocalId { get; set; }
     private ProductoFormModel model = new();
 
     private bool isLoading = true;
@@ -64,7 +67,7 @@
         try
         {
             var producto =
-                await ProductoService.ObtenerPorIdAsync(Id);
+               await ProductoService.ObtenerPorLocalIdAsync(LocalId);
 
             if (producto is null)
             {
@@ -110,7 +113,7 @@
             };
 
             await ProductoService.ActualizarAsync(
-                Id,
+               LocalId,
                 request);
 
             Navigation.NavigateTo("/productos");
@@ -128,5 +131,23 @@
     private void Cancelar()
     {
         Navigation.NavigateTo("/productos");
+    }
+
+    private async Task SubirImagenAsync(ProductoImageUpload image)
+    {
+        try
+        {
+            errorMessage = null;
+
+            await ProductoService.SubirImagenAsync(Id, image );
+        }
+        catch(UnauthorizedAccessException)
+        {
+            Navigation.NavigateTo("/login");
+        }
+        catch(HttpRequestException ex)
+        {
+            errorMessage = $"No fue posible subir la imagen. {ex.Message}";
+        }
     }
 }

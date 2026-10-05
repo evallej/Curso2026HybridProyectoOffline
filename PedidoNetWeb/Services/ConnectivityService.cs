@@ -1,6 +1,6 @@
 ﻿using Microsoft.JSInterop;
 
-namespace PedidoNet.Web.Services
+namespace PedidoNetWeb.Services
 {
     public class ConnectivityService : IAsyncDisposable
     {
@@ -19,6 +19,7 @@ namespace PedidoNet.Web.Services
         {
             _dotNetRef = DotNetObjectReference.Create(this);
             IsOnline = await _jsRuntime.InvokeAsync<bool>("connectivity.initialize", _dotNetRef);
+            ConnectivityChanged?.Invoke();
         }
 
         [JSInvokable]

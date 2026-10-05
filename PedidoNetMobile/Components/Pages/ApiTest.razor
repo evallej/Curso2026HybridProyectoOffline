@@ -1,0 +1,78 @@
+﻿@using PedidoNetMobile.Models.Auth
+@inject IHttpClientFactory HttpClientFactory
+@inject ITokenStorage TokenStorage
+
+<h3>ApiTest</h3>
+
+<button class="btn btn-primary" @onclick="GuardarPrueba">
+    Guardar sesión de prueba
+</button>
+
+<button class="btn btn-secondary" @onclick="LeerPrueba" >
+    Leer sesión
+</button>
+<button class="btn btn-danger" @onclick="BorrarPrueba">
+    Borrar sesión
+</button>
+<p>
+    @mensaje
+</p>
+
+@code {
+    private string mensaje = "Sin probar";
+
+    private async Task GuardarPrueba()
+    {
+        var session = new LoginResponse
+            {
+                AccessToken = "TOKEN-PRUEBA",
+                RefreshToken = "REFRESH-PRUEBA",
+                NombreUsuario = "USUARIO-PRUEBA",
+                Rol = "Administrador",
+                ExpiraEn = DateTime.Now.AddHours(1),
+                RefreshTokenExpiraEn = DateTime.Now.AddDays(7)
+            };
+        await TokenStorage.SaveAsync(session);
+        mensaje = "Sesión guardada";
+
+    }
+
+    private async Task LeerPrueba()
+    {
+        var session = await TokenStorage.GetAsync();
+        if (session is null)
+        {
+            mensaje = "No existe sesión";
+            return;
+        }
+        mensaje = $"Usuario:{session.NombreUsuario} | Rol:{session.Rol}";
+    }
+    private async Task BorrarPrueba()
+    {
+        await TokenStorage.ClearAsync();
+        mensaje = "Sesión eliminada";
+    }
+    // private void MostrarUrl()
+    // {
+    //     var client = HttpClientFactory.CreateClient("PedidoNetApi");
+    //     mensaje = client.BaseAddress?.ToString() ?? "Sin BaseAddress";
+    // }
+
+    // private async Task ProbarConexion()
+    // {
+    //     try
+    //     {
+    //         mensaje = "Conectando...";
+
+    //         var client = HttpClientFactory.CreateClient("PedidoNetApi");
+    //         var response = await client.GetAsync("api/v1/Producto");
+    //     https://localhost:7150/api/v1/Producto
+    //         mensaje = $"Código HTTP: {(int)response.StatusCode}" + response.StatusCode;
+    //     } 
+    //     catch(Exception e)
+    //     {
+    //         mensaje = $"Error: {e.Message}";
+    //     }
+    // }
+
+}

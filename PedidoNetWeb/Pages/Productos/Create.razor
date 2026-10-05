@@ -1,8 +1,8 @@
 ﻿@page "/productos/crear"
 
-@using PedidoNet.Web.Components.Productos
-@using PedidoNet.Web.Models.Productos
-@using PedidoNet.Web.Services.Productos
+@using PedidoNetWeb.Components.Productos
+@using PedidoNetWeb.Models.Productos
+@using PedidoNetWeb.Services.Productos
 
 @inject IProductoService ProductoService
 @inject NavigationManager Navigation
@@ -13,7 +13,7 @@
 
     <PageHeader
         Title="Nuevo producto"
-        Description="Registra un nuevo producto." />
+        Descripcion="Registra un nuevo producto" />
 
     <AlertMessage
         Message="@errorMessage"

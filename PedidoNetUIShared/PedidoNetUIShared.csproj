@@ -17,20 +17,16 @@
 
   <ItemGroup>
     <Folder Include="Auth\" />
-    <Folder Include="Components\Layout\" />
     <Folder Include="Components\Forms\" />
     <Folder Include="Abstracts\" />
     <Folder Include="Components\Clientes\" />
+    <Folder Include="Components\Layout\" />
     <Folder Include="Components\Productos\" />
     <Folder Include="Models\Auth\" />
     <Folder Include="Models\Cliente\" />
     <Folder Include="Models\Pedido\" />
     <Folder Include="Models\Producto\" />
     <Folder Include="Connectivity\" />
-    <Folder Include="Pages\Auth\" />
-    <Folder Include="Pages\Dashboard\" />
-    <Folder Include="Pages\Producto\" />
-    <Folder Include="Services\" />
   </ItemGroup>
 
 </Project>

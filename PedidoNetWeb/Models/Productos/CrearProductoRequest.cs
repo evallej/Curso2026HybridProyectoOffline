@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace PedidoNet.Web.Models.Productos
+namespace PedidoNetWeb.Models.Productos
 {
     public class CrearProductoRequest
     {
